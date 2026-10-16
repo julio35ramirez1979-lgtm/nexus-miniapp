@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nexus Sales & Marketing AI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -11,6 +11,8 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         body {
@@ -20,26 +22,26 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 12px;
+            padding: 10px;
         }
 
         .container {
             width: 100%;
             max-width: 500px;
-            background: rgba(30, 41, 59, 0.9);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(12px);
             border-radius: 20px;
-            padding: 16px;
+            padding: 14px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             height: 94vh;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .user-welcome {
@@ -59,33 +61,31 @@
 
         .tools-bar {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             margin-bottom: 12px;
             width: 100%;
         }
 
         .tool-btn {
             flex: 1;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.25);
             color: #94a3b8;
-            padding: 8px 4px;
-            border-radius: 10px;
-            font-size: 10.5px;
-            font-weight: 600;
+            padding: 10px 4px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
             text-align: center;
-            -webkit-tap-highlight-color: transparent;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            transition: all 0.15s ease-in-out;
+            touch-action: manipulation;
         }
 
         .tool-btn.active {
-            background: rgba(56, 189, 248, 0.2) !important;
+            background: #38bdf8 !important;
+            color: #0f172a !important;
             border-color: #38bdf8 !important;
-            color: #38bdf8 !important;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
 
         #chat-box {
@@ -96,6 +96,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            user-select: text;
         }
 
         .message {
@@ -131,10 +132,11 @@
             padding: 10px 12px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(15, 23, 42, 0.8);
             color: white;
             font-size: 13px;
             outline: none;
+            user-select: text;
         }
 
         input[type="text"]:focus {
@@ -149,11 +151,7 @@
             padding: 0 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-send:hover {
-            background: #7dd3fc;
+            touch-action: manipulation;
         }
 
         .btn-premium {
@@ -167,16 +165,7 @@
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-        }
-
-        #chat-box::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        #chat-box::-webkit-scrollbar-thumb {
-            background-color: rgba(56, 189, 248, 0.3);
-            border-radius: 10px;
+            touch-action: manipulation;
         }
     </style>
 </head>
@@ -188,9 +177,9 @@
         </div>
 
         <div class="tools-bar">
-            <button id="btn-copy" class="tool-btn active" onclick="setMode('copy')">🔥 Ganchos</button>
-            <button id="btn-sales" class="tool-btn" onclick="setMode('sales')">💬 Cierre</button>
-            <button id="btn-plan" class="tool-btn" onclick="setMode('plan')">📅 Contenido</button>
+            <div id="btn-copy" class="tool-btn active">🔥 Ganchos</div>
+            <div id="btn-sales" class="tool-btn">💬 Cierre</div>
+            <div id="btn-plan" class="tool-btn">📅 Contenido</div>
         </div>
 
         <div id="chat-box">
@@ -201,10 +190,10 @@
 
         <div class="input-area">
             <input type="text" id="user-input" placeholder="Escribe tu producto aquí..." onkeypress="handleKeyPress(event)">
-            <button class="btn-send" onclick="sendMessage()">Enviar</button>
+            <button class="btn-send" id="btn-send-msg">Enviar</button>
         </div>
 
-        <button class="btn-premium" onclick="triggerStarsPayment()">
+        <button class="btn-premium" id="btn-stars-pay">
             ★ Activar Modo Pro (50 Stars)
         </button>
     </div>
@@ -227,24 +216,47 @@
         function setMode(mode) {
             currentMode = mode;
             
-            document.getElementById('btn-copy').classList.remove('active');
-            document.getElementById('btn-sales').classList.remove('active');
-            document.getElementById('btn-plan').classList.remove('active');
+            const btnCopy = document.getElementById('btn-copy');
+            const btnSales = document.getElementById('btn-sales');
+            const btnPlan = document.getElementById('btn-plan');
+
+            btnCopy.classList.remove('active');
+            btnSales.classList.remove('active');
+            btnPlan.classList.remove('active');
 
             let promptHint = "";
             if (mode === 'copy') {
-                document.getElementById('btn-copy').classList.add('active');
+                btnCopy.classList.add('active');
                 promptHint = "Escribe tu producto para darte 3 ganchos + copy...";
             } else if (mode === 'sales') {
-                document.getElementById('btn-sales').classList.add('active');
+                btnSales.classList.add('active');
                 promptHint = "Escribe la objeción del cliente (ej: está caro)...";
             } else if (mode === 'plan') {
-                document.getElementById('btn-plan').classList.add('active');
+                btnPlan.classList.add('active');
                 promptHint = "Escribe tu nicho para darte un plan de 7 días...";
             }
 
             userInput.placeholder = promptHint;
         }
+
+        function bindTouch(elementId, callback) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            
+            const handler = function(e) {
+                e.preventDefault();
+                callback();
+            };
+
+            el.addEventListener('touchstart', handler, { passive: false });
+            el.addEventListener('click', callback);
+        }
+
+        bindTouch('btn-copy', () => setMode('copy'));
+        bindTouch('btn-sales', () => setMode('sales'));
+        bindTouch('btn-plan', () => setMode('plan'));
+        bindTouch('btn-send-msg', () => sendMessage());
+        bindTouch('btn-stars-pay', () => triggerStarsPayment());
 
         function handleKeyPress(e) {
             if (e.key === 'Enter') sendMessage();
