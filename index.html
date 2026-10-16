@@ -129,37 +129,50 @@
         }
 
         #results-container {
-            max-height: 220px;
+            max-height: 280px;
             overflow-y: auto;
             margin-top: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .image-card {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 10px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 14px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
         }
 
         .image-card span {
             font-size: 13px;
             color: #cbd5e1;
+            font-weight: 600;
         }
 
-        .btn-download {
+        .preview-img {
+            width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0f172a;
+        }
+
+        .btn-open {
             background: #10b981;
             color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 650;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
         }
 
         .loader {
@@ -238,7 +251,7 @@
 
                 for (let i = 1; i <= numPages; i++) {
                     const page = await pdfDoc.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.5 });
+                    const viewport = page.getViewport({ scale: 1.2 });
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
@@ -252,7 +265,10 @@
                     card.className = 'image-card';
                     card.innerHTML = `
                         <span>Página ${i} de ${numPages}</span>
-                        <a href="${imageUrl}" download="pagina_${i}.jpg" class="btn-download">Descargar JPG</a>
+                        <img src="${imageUrl}" class="preview-img" alt="Página ${i}">
+                        <button class="btn-open" onclick="openImageWindow('${imageUrl}')">
+                            🔍 Abrir Imagen Completa
+                        </button>
                     `;
                     resultsContainer.appendChild(card);
                 }
@@ -265,6 +281,28 @@
                 loader.style.display = 'none';
                 alert('Ocurrió un error al procesar el PDF. Asegúrate de que no esté dañado o protegido.');
                 console.error(error);
+            }
+        }
+
+        function openImageWindow(dataUrl) {
+            // Abrir la imagen en una nueva pestaña del navegador móvil para guardarla directamente
+            const imageWindow = window.open("");
+            if (imageWindow) {
+                imageWindow.document.write(`
+                    <html>
+                        <head><title>Guardar Imagen</title></head>
+                        <body style="margin:0; background:#0f172a; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+                            <img src="${dataUrl}" style="max-width:100%; height:auto;" />
+                        </body>
+                    </html>
+                `);
+            } else {
+                // Alternativa nativa de Telegram si el popup es bloqueado
+                tg.showPopup({
+                    title: 'Vista previa',
+                    message: 'Mantén presionada la imagen en pantalla para guardarla en tu galería.',
+                    buttons: [{ type: 'ok', text: 'Entendido' }]
+                });
             }
         }
 
