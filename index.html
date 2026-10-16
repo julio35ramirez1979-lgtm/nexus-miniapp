@@ -161,9 +161,16 @@
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: #0f172a;
+            cursor: pointer;
         }
 
-        .btn-send-chat {
+        .hint-text {
+            font-size: 11px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .btn-download {
             background: #10b981;
             color: white;
             padding: 11px 16px;
@@ -173,6 +180,9 @@
             font-weight: 700;
             cursor: pointer;
             width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .loader {
@@ -251,7 +261,7 @@
 
                 for (let i = 1; i <= numPages; i++) {
                     const page = await pdfDoc.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.2 });
+                    const viewport = page.getViewport({ scale: 1.5 }); // Alta calidad para descarga
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
@@ -259,16 +269,17 @@
 
                     await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                    const imageUrl = canvas.toDataURL('image/jpeg');
+                    const imageUrl = canvas.toDataURL('image/jpeg', 0.95);
 
                     const card = document.createElement('div');
                     card.className = 'image-card';
                     card.innerHTML = `
                         <span>Página ${i} de ${numPages}</span>
-                        <img src="${imageUrl}" class="preview-img" alt="Página ${i}">
-                        <button class="btn-send-chat" onclick="sendToChat(${i}, '${imageUrl}')">
-                            📥 Descargar / Enviar al Chat
-                        </button>
+                        <img src="${imageUrl}" class="preview-img" alt="Página ${i}" onclick="openImageSafe('${imageUrl}', ${i})">
+                        <span class="hint-text">💡 Toca la imagen o el botón para guardarla</span>
+                        <a href="${imageUrl}" download="pagina_${i}.jpg" class="btn-download" target="_blank">
+                            📥 Descargar Página ${i}
+                        </a>
                     `;
                     resultsContainer.appendChild(card);
                 }
@@ -284,13 +295,26 @@
             }
         }
 
-        function sendToChat(pageNum, imageUrl) {
-            // Abrir la imagen en enlace limpio para que el navegador nativo permita descargarla al teléfono
-            if (tg.openLink) {
-                tg.openLink(imageUrl);
+        function openImageSafe(url, pageNum) {
+            // Abrir la imagen en pestaña limpia del navegador para garantizar la descarga segura
+            const newWindow = window.open();
+            if (newWindow) {
+                newWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Página ${pageNum} - Nexus</title>
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        </head>
+                        <body style="margin:0; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; color:#fff; font-family:sans-serif;">
+                            <p style="margin-bottom:10px; font-size:14px; color:#38bdf8;">Mantén presionada la imagen para guardarla</p>
+                            <img src="${url}" style="max-width:100%; height:auto; border-radius:8px;" />
+                        </body>
+                    </html>
+                `);
             } else {
-                const w = window.open('');
-                w.document.write(`<img src="${imageUrl}" style="width:100%;"/><script>setTimeout(() => window.print(), 500);<\/script>`);
+                if(tg.openLink) {
+                    tg.openLink(url);
+                }
             }
         }
 
