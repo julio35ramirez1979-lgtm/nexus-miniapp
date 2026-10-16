@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Premium App</title>
-    <!-- Cargamos la librería oficial de Telegram Mini Apps -->
+    <!-- Librería oficial de Telegram Mini Apps -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -21,96 +21,163 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             padding: 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            padding: 32px 24px;
+            padding: 24px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid rgba(56, 189, 248, 0.3);
+        .user-welcome {
+            font-size: 14px;
             color: #38bdf8;
-            border-radius: 20px;
-            font-size: 12px;
             font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
         }
 
         h1 {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             background: linear-gradient(to right, #ffffff, #94a3b8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        p {
-            color: #94a3b8;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 28px;
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
-        .btn-primary {
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover, .card:active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #38bdf8;
+        }
+
+        .card-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .btn-stars {
             width: 100%;
             padding: 16px;
             border: none;
             border-radius: 14px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: #ffffff;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-
-        .stars-tag {
-            margin-top: 16px;
-            font-size: 13px;
-            color: #fbbf24;
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
+        }
+
+        .btn-stars:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <span class="badge">Ecosistema Nexus</span>
-        <h1>Herramienta Premium</h1>
-        <p>Optimiza tus tareas diarias con tecnología avanzada, rapidez y un diseño exclusivo.</p>
-        
-        <button class="btn-primary" onclick="alert('¡Función Premium conectada!')">
-            Comenzar Ahora
-        </button>
+        <div class="user-welcome" id="username">¡Hola, Usuario!</div>
+        <h1>Ecosistema Nexus</h1>
 
-        <div class="stars-tag">
-            <span>★</span> Integrado con Telegram Stars
+        <div class="grid">
+            <div class="card" onclick="openSection('Servicios')">
+                <div class="card-icon">⚡</div>
+                <div class="card-title">Servicios</div>
+            </div>
+            <div class="card" onclick="openSection('Catálogo')">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Catálogo</div>
+            </div>
+            <div class="card" onclick="openSection('Herramientas')">
+                <div class="card-icon">🛠️</div>
+                <div class="card-title">Herramientas</div>
+            </div>
+            <div class="card" onclick="openSection('Soporte')">
+                <div class="card-icon">💬</div>
+                <div class="card-title">Soporte VIP</div>
+            </div>
         </div>
+
+        <button class="btn-stars" onclick="triggerStarsPayment()">
+            ★ Obtener Pase Premium
+        </button>
     </div>
 
+    <script>
+        // Inicializar Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Expandir la app a pantalla completa
+
+        // Detectar nombre del usuario en Telegram
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            document.getElementById('username').innerText = `¡Hola, ${user.first_name}! 👋`;
+        }
+
+        // Función para abrir secciones con Popup nativo de Telegram
+        function openSection(name) {
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: name,
+                    message: `Has seleccionado la sección: ${name}. Próximamente con contenido exclusivo.`,
+                    buttons: [{ type: 'ok', text: 'Entendido' }]
+                });
+            } else {
+                alert(`Sección: ${name}`);
+            }
+        }
+
+        // Simular pago con Telegram Stars
+        function triggerStarsPayment() {
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: '★ Desbloquear Nexus VIP',
+                    message: '¿Deseas activar el acceso Premium con Telegram Stars?',
+                    buttons: [
+                        { type: 'default', text: 'Pagar 50 Stars', id: 'pay' },
+                        { type: 'cancel', text: 'Cancelar' }
+                    ]
+                }, function(buttonId) {
+                    if (buttonId === 'pay') {
+                        tg.showAlert('¡Gracias! La integración de pago real con Stars se procesará aquí.');
+                    }
+                });
+            }
+        }
+    </script>
 </body>
 </html>
