@@ -163,12 +163,6 @@
             background: #0f172a;
         }
 
-        .hint-text {
-            font-size: 11px;
-            color: #94a3b8;
-            font-style: italic;
-        }
-
         .btn-open {
             background: #10b981;
             color: white;
@@ -268,19 +262,21 @@
 
                     await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                    const imageUrl = canvas.toDataURL('image/jpeg');
+                    // Convertir el canvas a Blob directamente
+                    canvas.toBlob((blob) => {
+                        const blobUrl = URL.createObjectURL(blob);
 
-                const card = document.createElement('div');
-                card.className = 'image-card';
-                card.innerHTML = `
-                    <span>Página ${i} de ${numPages}</span>
-                    <img src="${imageUrl}" class="preview-img" alt="Página ${i}">
-                    <span class="hint-text">💡 Mantén presionada la imagen para guardarla</span>
-                    <a href="${imageUrl}" target="_blank" class="btn-open">
-                        🔍 Abrir Imagen Completa
-                    </a>
-                `;
-                    resultsContainer.appendChild(card);
+                        const card = document.createElement('div');
+                        card.className = 'image-card';
+                        card.innerHTML = `
+                            <span>Página ${i} de ${numPages}</span>
+                            <img src="${blobUrl}" class="preview-img" alt="Página ${i}">
+                            <button class="btn-open" onclick="openBlobImage('${blobUrl}')">
+                                🔍 Abrir Imagen Completa
+                            </button>
+                        `;
+                        resultsContainer.appendChild(card);
+                    }, 'image/jpeg', 0.95);
                 }
 
                 loader.style.display = 'none';
@@ -291,6 +287,15 @@
                 loader.style.display = 'none';
                 alert('Ocurrió un error al procesar el PDF. Asegúrate de que no esté dañado.');
                 console.error(error);
+            }
+        }
+
+        function openBlobImage(blobUrl) {
+            // Usa la API de Telegram para abrir el enlace Blob en el navegador externo del teléfono
+            if (tg.openLink) {
+                tg.openLink(blobUrl);
+            } else {
+                window.open(blobUrl, '_blank');
             }
         }
 
