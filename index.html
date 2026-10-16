@@ -179,21 +179,9 @@
             font-weight: 700;
             cursor: pointer;
             width: 100%;
-        }
-
-        .pro-card {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.4);
-            padding: 16px;
-            border-radius: 16px;
+            text-decoration: none;
+            display: inline-block;
             text-align: center;
-        }
-
-        .pro-card p {
-            font-size: 13px;
-            color: #fbbf24;
-            margin-bottom: 10px;
-            font-weight: 600;
         }
 
         .loader {
@@ -244,7 +232,6 @@
         }
 
         let selectedFile = null;
-        const FREE_LIMIT = 3; // Límite de páginas para la versión gratuita
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -271,10 +258,7 @@
                 const pdfDoc = await loadingTask.promise;
                 const numPages = pdfDoc.numPages;
 
-                // Renderizamos hasta el límite gratuito
-                const pagesToProcess = Math.min(numPages, FREE_LIMIT);
-
-                for (let i = 1; i <= pagesToProcess; i++) {
+                for (let i = 1; i <= numPages; i++) {
                     const page = await pdfDoc.getPage(i);
                     const viewport = page.getViewport({ scale: 1.2 });
                     const canvas = document.createElement('canvas');
@@ -284,4 +268,48 @@
 
                     await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                    const imageUrl
+                    const imageUrl = canvas.toDataURL('image/jpeg');
+
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.innerHTML = `
+                    <span>Página ${i} de ${numPages}</span>
+                    <img src="${imageUrl}" class="preview-img" alt="Página ${i}">
+                    <span class="hint-text">💡 Mantén presionada la imagen para guardarla</span>
+                    <a href="${imageUrl}" target="_blank" class="btn-open">
+                        🔍 Abrir Imagen Completa
+                    </a>
+                `;
+                    resultsContainer.appendChild(card);
+                }
+
+                loader.style.display = 'none';
+                if (tg.showAlert) {
+                    tg.showAlert(`¡Conversión completada! Se procesaron ${numPages} páginas con éxito.`);
+                }
+            } catch (error) {
+                loader.style.display = 'none';
+                alert('Ocurrió un error al procesar el PDF. Asegúrate de que no esté dañado.');
+                console.error(error);
+            }
+        }
+
+        function triggerStarsPayment() {
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: '★ Pase Pro Ilimitado',
+                    message: 'Activa conversiones ilimitadas y procesamiento prioritario por 30 Telegram Stars.',
+                    buttons: [
+                        { type: 'default', text: 'Pagar 30 Stars', id: 'pay' },
+                        { type: 'cancel', text: 'Cancelar' }
+                    ]
+                }, function(buttonId) {
+                    if (buttonId === 'pay') {
+                        tg.showAlert('¡Gracias! Pase Pro activado en tu cuenta.');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
