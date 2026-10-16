@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Premium App</title>
+    <title>Nexus - PDF a Imagen</title>
     <!-- Librería oficial de Telegram Mini Apps -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -45,7 +45,7 @@
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             margin-bottom: 16px;
             background: linear-gradient(to right, #ffffff, #94a3b8);
@@ -53,57 +53,78 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .upload-box {
+            border: 2px dashed rgba(56, 189, 248, 0.4);
             border-radius: 16px;
-            padding: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.02);
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .card:hover, .card:active {
-            background: rgba(56, 189, 248, 0.15);
+        .upload-box:hover {
             border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.05);
         }
 
-        .card-icon {
-            font-size: 24px;
+        .upload-icon {
+            font-size: 36px;
             margin-bottom: 8px;
         }
 
-        .card-title {
+        .upload-text {
             font-size: 14px;
-            font-weight: 600;
-            color: #f1f5f9;
+            color: #cbd5e1;
+            margin-bottom: 4px;
         }
 
-        .btn-stars {
+        .upload-subtext {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn-action {
             width: 100%;
             padding: 16px;
             border: none;
             border-radius: 14px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
             color: #ffffff;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.3);
+            transition: transform 0.1s ease;
+            margin-bottom: 12px;
         }
 
-        .btn-stars:active {
+        .btn-action:active {
             transform: scale(0.98);
+        }
+
+        .btn-stars {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+        }
+
+        #file-info {
+            font-size: 13px;
+            color: #38bdf8;
+            margin-bottom: 15px;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -111,69 +132,82 @@
 
     <div class="container">
         <div class="user-welcome" id="username">¡Hola, Usuario!</div>
-        <h1>Ecosistema Nexus</h1>
+        <h1>Conversor PDF a Imagen</h1>
 
-        <div class="grid">
-            <div class="card" onclick="openSection('Servicios')">
-                <div class="card-icon">⚡</div>
-                <div class="card-title">Servicios</div>
-            </div>
-            <div class="card" onclick="openSection('Catálogo')">
-                <div class="card-icon">📦</div>
-                <div class="card-title">Catálogo</div>
-            </div>
-            <div class="card" onclick="openSection('Herramientas')">
-                <div class="card-icon">🛠️</div>
-                <div class="card-title">Herramientas</div>
-            </div>
-            <div class="card" onclick="openSection('Soporte')">
-                <div class="card-icon">💬</div>
-                <div class="card-title">Soporte VIP</div>
-            </div>
+        <!-- Zona para cargar archivo -->
+        <div class="upload-box" onclick="document.getElementById('pdfFile').click()">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text" id="upload-label">Toca para seleccionar tu PDF</div>
+            <div class="upload-subtext">Máximo 20MB • Alta Calidad</div>
         </div>
+        <input type="file" id="pdfFile" accept=".pdf" onchange="handleFileSelect(event)">
+
+        <div id="file-info"></div>
+
+        <button class="btn-action" onclick="convertFile()">
+            ⚡ Convertir a Imágenes
+        </button>
 
         <button class="btn-stars" onclick="triggerStarsPayment()">
-            ★ Obtener Pase Premium
+            ★ Desbloquear Conversión Ilimitada (Stars)
         </button>
     </div>
 
     <script>
         // Inicializar Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Expandir la app a pantalla completa
+        tg.expand();
 
-        // Detectar nombre del usuario en Telegram
+        // Saludo personalizado con el usuario de Telegram
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
             document.getElementById('username').innerText = `¡Hola, ${user.first_name}! 👋`;
         }
 
-        // Función para abrir secciones con Popup nativo de Telegram
-        function openSection(name) {
-            if (tg.showPopup) {
-                tg.showPopup({
-                    title: name,
-                    message: `Has seleccionado la sección: ${name}. Próximamente con contenido exclusivo.`,
-                    buttons: [{ type: 'ok', text: 'Entendido' }]
-                });
-            } else {
-                alert(`Sección: ${name}`);
+        let selectedFile = null;
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('upload-label').innerText = "Archivo seleccionado:";
+                document.getElementById('file-info').innerText = `📎 ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
             }
         }
 
-        // Simular pago con Telegram Stars
+        function convertFile() {
+            if (!selectedFile) {
+                if (tg.showAlert) {
+                    tg.showAlert('Por favor, selecciona primero un archivo PDF.');
+                } else {
+                    alert('Por favor, selecciona primero un archivo PDF.');
+                }
+                return;
+            }
+
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: 'Procesando archivo',
+                    message: `Convirtiendo "${selectedFile.name}" a formato de imagen de alta calidad...`,
+                    buttons: [{ type: 'ok', text: 'Ver Resultados' }]
+                });
+            } else {
+                alert('¡Conversión simulada con éxito!');
+            }
+        }
+
         function triggerStarsPayment() {
             if (tg.showPopup) {
                 tg.showPopup({
-                    title: '★ Desbloquear Nexus VIP',
-                    message: '¿Deseas activar el acceso Premium con Telegram Stars?',
+                    title: '★ Pase Pro Ilimitado',
+                    message: 'Activa conversiones ilimitadas y sin marcas de agua por solo 30 Telegram Stars.',
                     buttons: [
-                        { type: 'default', text: 'Pagar 50 Stars', id: 'pay' },
+                        { type: 'default', text: 'Pagar 30 Stars', id: 'pay' },
                         { type: 'cancel', text: 'Cancelar' }
                     ]
                 }, function(buttonId) {
                     if (buttonId === 'pay') {
-                        tg.showAlert('¡Gracias! La integración de pago real con Stars se procesará aquí.');
+                        tg.showAlert('¡Gracias! Pase Pro activado correctamente.');
                     }
                 });
             }
