@@ -9,7 +9,6 @@
     <!-- PDF.js para procesar los PDFs directamente en el navegador -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // Configurar el worker de PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <style>
@@ -129,9 +128,8 @@
             word-break: break-all;
         }
 
-        /* Contenedor donde aparecerán las imágenes convertidas */
         #results-container {
-            max-height: 250px;
+            max-height: 220px;
             overflow-y: auto;
             margin-top: 15px;
             display: flex;
@@ -140,7 +138,7 @@
         }
 
         .image-card {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 10px;
             border-radius: 12px;
@@ -169,6 +167,7 @@
             font-size: 14px;
             color: #38bdf8;
             margin: 10px 0;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -202,11 +201,9 @@
     </div>
 
     <script>
-        // Inicializar Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Saludo personalizado con el usuario de Telegram
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
             document.getElementById('username').innerText = `¡Hola, ${user.first_name}! 👋`;
@@ -241,7 +238,7 @@
 
                 for (let i = 1; i <= numPages; i++) {
                     const page = await pdfDoc.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.5 }); // Escala de alta calidad
+                    const viewport = page.getViewport({ scale: 1.5 });
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
@@ -251,7 +248,6 @@
 
                     const imageUrl = canvas.toDataURL('image/jpeg');
 
-                    // Crear tarjeta visual para descargar la imagen de cada página
                     const card = document.createElement('div');
                     card.className = 'image-card';
                     card.innerHTML = `
@@ -263,11 +259,11 @@
 
                 loader.style.display = 'none';
                 if (tg.showAlert) {
-                    tg.showAlert(`¡Conversión completada con éxito! Se procesaron ${numPages} páginas.`);
+                    tg.showAlert(`¡Conversión completada! Se procesaron ${numPages} páginas con éxito.`);
                 }
             } catch (error) {
                 loader.style.display = 'none';
-                alert('Ocurrió un error al procesar el PDF. Asegúrate de que no esté protegido.');
+                alert('Ocurrió un error al procesar el PDF. Asegúrate de que no esté dañado o protegido.');
                 console.error(error);
             }
         }
@@ -283,7 +279,7 @@
                     ]
                 }, function(buttonId) {
                     if (buttonId === 'pay') {
-                        tg.showAlert('¡Pago simulado con éxito! Pase Pro activado permanentemente en tu cuenta.');
+                        tg.showAlert('¡Gracias! Pase Pro activado en tu cuenta.');
                     }
                 });
             }
