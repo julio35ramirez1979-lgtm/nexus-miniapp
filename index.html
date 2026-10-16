@@ -129,19 +129,19 @@
         }
 
         #results-container {
-            max-height: 280px;
+            max-height: 320px;
             overflow-y: auto;
             margin-top: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         .image-card {
             background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.08);
             padding: 12px;
-            border-radius: 14px;
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -156,23 +156,44 @@
 
         .preview-img {
             width: 100%;
-            max-height: 180px;
+            max-height: 200px;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: #0f172a;
+        }
+
+        .hint-text {
+            font-size: 11px;
+            color: #94a3b8;
+            font-style: italic;
         }
 
         .btn-open {
             background: #10b981;
             color: white;
-            padding: 10px 16px;
+            padding: 11px 16px;
             border-radius: 10px;
             border: none;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             width: 100%;
+        }
+
+        .pro-card {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .pro-card p {
+            font-size: 13px;
+            color: #fbbf24;
+            margin-bottom: 10px;
+            font-weight: 600;
         }
 
         .loader {
@@ -194,7 +215,7 @@
         <div class="upload-box" onclick="document.getElementById('pdfFile').click()">
             <div class="upload-icon">📄</div>
             <div class="upload-text" id="upload-label">Toca para seleccionar tu PDF</div>
-            <div class="upload-subtext">Procesamiento seguro y local</div>
+            <div class="upload-subtext">Procesamiento instantáneo y privado</div>
         </div>
         <input type="file" id="pdfFile" accept=".pdf" onchange="handleFileSelect(event)">
 
@@ -223,6 +244,7 @@
         }
 
         let selectedFile = null;
+        const FREE_LIMIT = 3; // Límite de páginas para la versión gratuita
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -249,7 +271,10 @@
                 const pdfDoc = await loadingTask.promise;
                 const numPages = pdfDoc.numPages;
 
-                for (let i = 1; i <= numPages; i++) {
+                // Renderizamos hasta el límite gratuito
+                const pagesToProcess = Math.min(numPages, FREE_LIMIT);
+
+                for (let i = 1; i <= pagesToProcess; i++) {
                     const page = await pdfDoc.getPage(i);
                     const viewport = page.getViewport({ scale: 1.2 });
                     const canvas = document.createElement('canvas');
@@ -259,69 +284,4 @@
 
                     await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                    const imageUrl = canvas.toDataURL('image/jpeg');
-
-                    const card = document.createElement('div');
-                    card.className = 'image-card';
-                    card.innerHTML = `
-                        <span>Página ${i} de ${numPages}</span>
-                        <img src="${imageUrl}" class="preview-img" alt="Página ${i}">
-                        <button class="btn-open" onclick="openImageWindow('${imageUrl}')">
-                            🔍 Abrir Imagen Completa
-                        </button>
-                    `;
-                    resultsContainer.appendChild(card);
-                }
-
-                loader.style.display = 'none';
-                if (tg.showAlert) {
-                    tg.showAlert(`¡Conversión completada! Se procesaron ${numPages} páginas con éxito.`);
-                }
-            } catch (error) {
-                loader.style.display = 'none';
-                alert('Ocurrió un error al procesar el PDF. Asegúrate de que no esté dañado o protegido.');
-                console.error(error);
-            }
-        }
-
-        function openImageWindow(dataUrl) {
-            // Abrir la imagen en una nueva pestaña del navegador móvil para guardarla directamente
-            const imageWindow = window.open("");
-            if (imageWindow) {
-                imageWindow.document.write(`
-                    <html>
-                        <head><title>Guardar Imagen</title></head>
-                        <body style="margin:0; background:#0f172a; display:flex; justify-content:center; align-items:center; min-height:100vh;">
-                            <img src="${dataUrl}" style="max-width:100%; height:auto;" />
-                        </body>
-                    </html>
-                `);
-            } else {
-                // Alternativa nativa de Telegram si el popup es bloqueado
-                tg.showPopup({
-                    title: 'Vista previa',
-                    message: 'Mantén presionada la imagen en pantalla para guardarla en tu galería.',
-                    buttons: [{ type: 'ok', text: 'Entendido' }]
-                });
-            }
-        }
-
-        function triggerStarsPayment() {
-            if (tg.showPopup) {
-                tg.showPopup({
-                    title: '★ Pase Pro Ilimitado',
-                    message: 'Activa conversiones ilimitadas y procesamiento prioritario por 30 Telegram Stars.',
-                    buttons: [
-                        { type: 'default', text: 'Pagar 30 Stars', id: 'pay' },
-                        { type: 'cancel', text: 'Cancelar' }
-                    ]
-                }, function(buttonId) {
-                    if (buttonId === 'pay') {
-                        tg.showAlert('¡Gracias! Pase Pro activado en tu cuenta.');
-                    }
-                });
-            }
-        }
-    </script>
-</body>
-</html>
+                    const imageUrl
