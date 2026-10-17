@@ -69,4 +69,286 @@
         .tool-btn {
             flex: 1;
             background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(56, 189, 248
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            color: #94a3b8;
+            padding: 10px 4px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s ease-in-out;
+            touch-action: manipulation;
+        }
+
+        .tool-btn.active {
+            background: #38bdf8 !important;
+            color: #0f172a !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            user-select: text;
+        }
+
+        .message {
+            max-width: 88%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 4px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.8);
+            color: white;
+            font-size: 13px;
+            outline: none;
+            user-select: text;
+        }
+
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+        }
+
+        .btn-send {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 12px;
+            padding: 0 16px;
+            font-weight: 700;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .btn-premium {
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="user-welcome" id="username">¡Hola, Emprendedor! 👋</div>
+            <h1>Nexus Sales & Marketing AI</h1>
+        </div>
+
+        <div class="tools-bar">
+            <div id="btn-copy" class="tool-btn active">🔥 Ganchos</div>
+            <div id="btn-sales" class="tool-btn">💬 Cierre</div>
+            <div id="btn-plan" class="tool-btn">📅 Contenido</div>
+        </div>
+
+        <div id="chat-box">
+            <div class="message ai-message">
+                ¡Hola! Soy tu Asistente de Ventas y Marketing B2B. Selecciona una herramienta arriba o dime qué producto ofertas para empezar.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu producto aquí..." onkeypress="handleKeyPress(event)">
+            <button class="btn-send" id="btn-send-msg">Enviar</button>
+        </div>
+
+        <button class="btn-premium" id="btn-stars-pay">
+            ★ Activar Modo Pro (50 Stars)
+        </button>
+    </div>
+
+    <script>
+        const API_KEY = "AQ.Ab8RN6IYnmHHfYUGC-AT97VNkztUxNUpWsOyGbi0XTKMp6vo2Q";
+
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            document.getElementById('username').innerText = `¡Hola, ${user.first_name}! 👋`;
+        }
+
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        let currentMode = 'copy';
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            const btnCopy = document.getElementById('btn-copy');
+            const btnSales = document.getElementById('btn-sales');
+            const btnPlan = document.getElementById('btn-plan');
+
+            btnCopy.classList.remove('active');
+            btnSales.classList.remove('active');
+            btnPlan.classList.remove('active');
+
+            let promptHint = "";
+            if (mode === 'copy') {
+                btnCopy.classList.add('active');
+                promptHint = "Escribe tu producto para darte 3 ganchos + copy...";
+            } else if (mode === 'sales') {
+                btnSales.classList.add('active');
+                promptHint = "Escribe la objeción del cliente (ej: está caro)...";
+            } else if (mode === 'plan') {
+                btnPlan.classList.add('active');
+                promptHint = "Escribe tu nicho para darte un plan de 7 días...";
+            }
+
+            userInput.placeholder = promptHint;
+        }
+
+        function bindTouch(elementId, callback) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            
+            const handler = function(e) {
+                e.preventDefault();
+                callback();
+            };
+
+            el.addEventListener('touchstart', handler, { passive: false });
+            el.addEventListener('click', callback);
+        }
+
+        bindTouch('btn-copy', () => setMode('copy'));
+        bindTouch('btn-sales', () => setMode('sales'));
+        bindTouch('btn-plan', () => setMode('plan'));
+        bindTouch('btn-send-msg', () => sendMessage());
+        bindTouch('btn-stars-pay', () => triggerStarsPayment());
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage(text, 'user-message');
+            userInput.value = '';
+
+            showLoading();
+
+            try {
+                let systemInstruction = "";
+                if (currentMode === 'copy') {
+                    systemInstruction = "Eres un Copywriter B2B experto. El usuario te dirá su producto o servicio. Entrega: 1) 3 Ganchos (Hooks) altamente magnéticos para redes sociales. 2) Un Copy publicitario enfocado en beneficios y conversión con CTA claro.";
+                } else if (currentMode === 'sales') {
+                    systemInstruction = "Eres un especialista en Cierre de Ventas por WhatsApp y Telegram. El usuario te dará una objeción de un cliente. Ofrécele 2 guiones de respuesta persuasiva enfocados en reencuadrar el valor del producto y cerrar la venta.";
+                } else if (currentMode === 'plan') {
+                    systemInstruction = "Eres un Estratega de Marketing de Contenidos. El usuario te dirá su nicho. Entrégale un Plan Estratégico de Contenidos de 7 días (Lunes a Domingo) con pilares de venta, educación y entretenimiento.";
+                }
+
+                const fullPrompt = `${systemInstruction}\n\nSolicitud del usuario: ${text}`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: fullPrompt }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                removeLoading();
+
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    let aiResponse = data.candidates[0].content.parts[0].text;
+                    aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+                    appendMessage(aiResponse, 'ai-message');
+                } else if (data.error) {
+                    appendMessage(`Error de API: ${data.error.message}`, 'ai-message');
+                } else {
+                    appendMessage("No se pudo generar respuesta. Verifica la API key.", 'ai-message');
+                }
+            } catch (error) {
+                removeLoading();
+                appendMessage("Error de conexión. Revisa tu internet e intenta nuevamente.", 'ai-message');
+            }
+        }
+
+        function appendMessage(text, className) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            msgDiv.innerHTML = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showLoading() {
+            const loader = document.createElement('div');
+            loader.className = 'message ai-message';
+            loader.id = 'loading-msg';
+            loader.innerText = 'Analizando tu estrategia con Gemini...';
+            chatBox.appendChild(loader);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeLoading() {
+            const loader = document.getElementById('loading-msg');
+            if (loader) chatBox.removeChild(loader);
+        }
+
+        function triggerStarsPayment() {
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: '★ Nexus Pro',
+                    message: 'Desbloquea asesoría de marketing ilimitada y modelos avanzados por 50 Stars.',
+                    buttons: [
+                        { type: 'default', text: 'Pagar 50 Stars', id: 'pay' },
+                        { type: 'cancel', text: 'Cancelar' }
+                    ]
+                }, function(buttonId) {
+                    if (buttonId === 'pay') {
+                        tg.showAlert('¡Gracias por activar Nexus Pro!');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
