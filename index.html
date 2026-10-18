@@ -4,348 +4,283 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nexus Sales & Marketing AI</title>
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+        :root {
+            --bg-color: #121824;
+            --card-bg: #1e2738;
+            --accent-color: #0088cc;
+            --accent-hover: #00a0f0;
+            --text-color: #ffffff;
+            --text-muted: #8e9bae;
+            --border-color: #2a364f;
+            --pro-color: #f39c12;
         }
 
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 10px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 14px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            height: 94vh;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            height: 100vh;
+            box-sizing: border-box;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 10px;
+            padding: 8px 0 12px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
         }
 
-        .user-welcome {
-            font-size: 12px;
-            color: #38bdf8;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        h1 {
-            font-size: 17px;
-            background: linear-gradient(to right, #ffffff, #38bdf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 700;
-        }
-
-        .tools-bar {
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            color: #ffffff;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 4px 0 0;
+        }
+
+        .tool-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 6px;
             margin-bottom: 12px;
-            width: 100%;
         }
 
         .tool-btn {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            color: #94a3b8;
-            padding: 10px 4px;
-            border-radius: 12px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 4px;
+            border-radius: 8px;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             text-align: center;
-            transition: all 0.15s ease-in-out;
-            touch-action: manipulation;
+            transition: all 0.2s ease;
         }
 
         .tool-btn.active {
-            background: #38bdf8 !important;
-            color: #0f172a !important;
-            border-color: #38bdf8 !important;
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
         }
 
-        #chat-box {
+        .chat-container {
             flex: 1;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
             overflow-y: auto;
-            margin-bottom: 12px;
-            padding-right: 4px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            user-select: text;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
         }
 
         .message {
-            max-width: 88%;
-            padding: 10px 14px;
-            border-radius: 16px;
+            max-width: 85%;
+            padding: 10px 12px;
+            border-radius: 12px;
             font-size: 13px;
             line-height: 1.4;
+            white-space: pre-wrap;
         }
 
-        .user-message {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .ai-message {
+        .message.bot {
+            background-color: #26334d;
             align-self: flex-start;
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 2px;
         }
 
-        .input-area {
+        .message.user {
+            background-color: var(--accent-color);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .input-container {
             display: flex;
             gap: 8px;
+            margin-bottom: 8px;
         }
 
         input[type="text"] {
             flex: 1;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(15, 23, 42, 0.8);
-            color: white;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            color: #ffffff;
             font-size: 13px;
             outline: none;
-            user-select: text;
         }
 
         input[type="text"]:focus {
-            border-color: #38bdf8;
+            border-color: var(--accent-color);
         }
 
-        .btn-send {
-            background: #38bdf8;
-            color: #0f172a;
-            border: none;
-            border-radius: 12px;
-            padding: 0 16px;
-            font-weight: 700;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        .btn-premium {
-            margin-top: 8px;
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            border: none;
-            border-radius: 12px;
+        button.send-btn {
+            background-color: var(--accent-color);
             color: white;
-            font-size: 12px;
-            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-weight: bold;
+            font-size: 13px;
             cursor: pointer;
-            touch-action: manipulation;
+        }
+
+        .pro-btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="user-welcome" id="username">¡Hola, Emprendedor! 👋</div>
-            <h1>Nexus Sales & Marketing AI</h1>
-        </div>
 
-        <div class="tools-bar">
-            <div id="btn-copy" class="tool-btn active">🔥 Ganchos</div>
-            <div id="btn-sales" class="tool-btn">💬 Cierre</div>
-            <div id="btn-plan" class="tool-btn">📅 Contenido</div>
-        </div>
-
-        <div id="chat-box">
-            <div class="message ai-message">
-                ¡Hola! Soy tu Asistente de Ventas y Marketing B2B. Selecciona una herramienta arriba o dime qué producto ofertas para empezar.
-            </div>
-        </div>
-
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="Escribe tu producto aquí..." onkeypress="handleKeyPress(event)">
-            <button class="btn-send" id="btn-send-msg">Enviar</button>
-        </div>
-
-        <button class="btn-premium" id="btn-stars-pay">
-            ★ Activar Modo Pro (50 Stars)
-        </button>
+    <div class="header">
+        <h1 id="user-greeting">Nexus Sales & Marketing AI</h1>
+        <p>Tu asistente de ventas B2B directo en Telegram</p>
     </div>
+
+    <div class="tool-selector">
+        <button class="tool-btn active" onclick="selectTool('ganchos', this)">🔥 Ganchos</button>
+        <button class="tool-btn" onclick="selectTool('cierre', this)">💬 Cierre</button>
+        <button class="tool-btn" onclick="selectTool('contenido', this)">📅 Contenido</button>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="message bot">¡Hola! Soy tu Asistente de Ventas y Marketing B2B. Selecciona una herramienta arriba o dime qué producto ofertas para empezar.</div>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Escribe tu producto aquí..." onkeypress="handleKeyPress(event)">
+        <button class="send-btn" onclick="sendMessage()">Enviar</button>
+    </div>
+
+    <button class="pro-btn" onclick="triggerStarsPayment()">★ Activar Modo Pro (50 Stars)</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        let currentTool = 'ganchos';
+
+        // Personalizar saludo si está en Telegram
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
-            document.getElementById('username').innerText = `¡Hola, ${user.first_name}! 👋`;
+            document.getElementById('user-greeting').innerText = `¡Hola, ${user.first_name}! 👋`;
         }
 
-        const chatBox = document.getElementById('chat-box');
-        const userInput = document.getElementById('user-input');
-        let currentMode = 'copy';
+        function selectTool(tool, element) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        }
 
-        function setMode(mode) {
-            currentMode = mode;
-            
-            const btnCopy = document.getElementById('btn-copy');
-            const btnSales = document.getElementById('btn-sales');
-            const btnPlan = document.getElementById('btn-plan');
-
-            btnCopy.classList.remove('active');
-            btnSales.classList.remove('active');
-            btnPlan.classList.remove('active');
-
-            let promptHint = "";
-            if (mode === 'copy') {
-                btnCopy.classList.add('active');
-                promptHint = "Escribe tu producto para darte 3 ganchos + copy...";
-            } else if (mode === 'sales') {
-                btnSales.classList.add('active');
-                promptHint = "Escribe la objeción del cliente (ej: está caro)...";
-            } else if (mode === 'plan') {
-                btnPlan.classList.add('active');
-                promptHint = "Escribe tu nicho para darte un plan de 7 días...";
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
             }
-
-            userInput.placeholder = promptHint;
-        }
-
-        function bindTouch(elementId, callback) {
-            const el = document.getElementById(elementId);
-            if (!el) return;
-            
-            const handler = function(e) {
-                e.preventDefault();
-                callback();
-            };
-
-            el.addEventListener('touchstart', handler, { passive: false });
-            el.addEventListener('click', callback);
-        }
-
-        bindTouch('btn-copy', () => setMode('copy'));
-        bindTouch('btn-sales', () => setMode('sales'));
-        bindTouch('btn-plan', () => setMode('plan'));
-        bindTouch('btn-send-msg', () => sendMessage());
-        bindTouch('btn-stars-pay', () => triggerStarsPayment());
-
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
         }
 
         async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+            const inputField = document.getElementById('userInput');
+            const product = inputField.value.trim();
 
-            appendMessage(text, 'user-message');
-            userInput.value = '';
+            if (!product) return;
 
-            showLoading();
+            addMessage(product, 'user');
+            inputField.value = '';
+
+            const loadingId = addMessage("Nexus IA conectando con el servidor...", 'bot');
+
+            let promptContext = "";
+            if (currentTool === 'ganchos') {
+                promptContext = `Genera 3 ganchos publicitarios de alto impacto y una propuesta corta de valor en español para vender el siguiente producto: ${product}`;
+            } else if (currentTool === 'cierre') {
+                promptContext = `Dame 2 respuestas efectivas para rebatir objeciones de precio o dudas comunes en español para vender: ${product}`;
+            } else if (currentTool === 'contenido') {
+                promptContext = `Crea una pequeña estrategia de contenido de 3 días (1 reel, 1 carrusel, 1 historia) en español para promocionar: ${product}`;
+            }
+
+            // Usamos corsproxy.io para evitar bloqueos regionales y garantizar la respuesta
+            const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://text.pollinations.ai/${encodeURIComponent(promptContext)}`);
 
             try {
-                let systemInstruction = "";
-                if (currentMode === 'copy') {
-                    systemInstruction = "Eres un Copywriter B2B experto. El usuario te dirá su producto o servicio. Entrega: 1) 3 Ganchos (Hooks) altamente magnéticos para redes sociales. 2) Un Copy publicitario enfocado en beneficios y conversión con CTA claro.";
-                } else if (currentMode === 'sales') {
-                    systemInstruction = "Eres un especialista en Cierre de Ventas por WhatsApp y Telegram. El usuario te dará una objeción de un cliente. Ofrécele 2 guiones de respuesta persuasiva enfocados en reencuadrar el valor del producto y cerrar la venta.";
-                } else if (currentMode === 'plan') {
-                    systemInstruction = "Eres un Estratega de Marketing de Contenidos. El usuario te dirá su nicho. Entrégale un Plan Estratégico de Contenidos de 7 días (Lunes a Domingo) con pilares de venta, educación y entretenimiento.";
-                }
-
-                const fullPrompt = `${systemInstruction}\n\nSolicitud del usuario: ${text}`;
-
-                // Usamos un proxy de API público que redirige la petición sin bloqueos geográficos locales
-                const proxyUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}`);
-
                 const response = await fetch(proxyUrl);
-                const dataText = await response.text();
+                if (!response.ok) throw new Error("Error en la respuesta del servidor");
                 
-                removeLoading();
-
-                if (dataText && dataText.length > 0) {
-                    let aiResponse = dataText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-                    appendMessage(aiResponse, 'ai-message');
+                const textResponse = await response.text();
+                
+                if (textResponse && textResponse.trim().length > 0) {
+                    updateMessage(loadingId, textResponse);
                 } else {
-                    appendMessage("No se pudo conectar con el servicio de IA. Intenta de nuevo.", 'ai-message');
+                    throw new Error("Respuesta vacía");
                 }
             } catch (error) {
-                removeLoading();
-                // Si ocurre cualquier fallo de red, desplegamos un respaldo inteligente local automático
-                let fallbackResponse = "";
-                if (currentMode === 'copy') {
-                    fallbackResponse = `<b>Estrategia de Ganchos para:</b> "${text}"<br><br>1. "¿Listo para llevar tus resultados al siguiente nivel con ${text}?"<br>2. "El secreto mejor guardado para destacar con ${text} hoy mismo."<br>3. "No tomes ninguna decisión sobre ${text} sin ver esta opción."`;
-                } else if (currentMode === 'sales') {
-                    fallbackResponse = `<b>Guía de Cierre para:</b> "${text}"<br><br>Entiendo tu posición. La clave aquí es el valor a largo plazo que obtienes. ¿Coordinamos los detalles para avanzar?`;
+                console.error(error);
+                // Respaldo de contingencia en caso de intermitencia de red
+                let fallbackMsg = "";
+                if (currentTool === 'ganchos') {
+                    fallbackMsg = `🔥 **Ganchos para ${product}:**\n\n1. "¿Cansado de buscar la mejor opción en ${product}? Mira esto..."\n2. "Lo que nadie te dice sobre adquirir un buen ${product}."\n3. "Transforma tu experiencia con ${product} hoy mismo."`;
+                } else if (currentTool === 'cierre') {
+                    fallbackMsg = `💬 **Cierre de ventas para ${product}:**\n\n- *Objeción de precio:* "Entiendo tu punto. Sin embargo, con este ${product} ahorras tiempo y obtienes garantía directa."\n- *Llamado a la acción:* "¿Te gustaría agendar una prueba o envío hoy mismo?"`;
                 } else {
-                    fallbackResponse = `<b>Plan de Contenido para:</b> "${text}"<br><br>• Lunes-Miércoles: Propuesta de valor.<br>• Jueves-Viernes: Educación.<br>• Sábado-Domingo: Oferta especial.`;
+                    fallbackMsg = `📅 **Estrategia para ${product}:**\n\n- Día 1 (Reel): Demostración en vivo de uso de ${product}.\n- Día 2 (Carrusel): 3 razones para elegir nuestro ${product}.\n- Día 3 (Historia): Oferta o descuento por tiempo limitado.`;
                 }
-                appendMessage(fallbackResponse, 'ai-message');
+                updateMessage(loadingId, fallbackMsg);
             }
         }
 
-        function appendMessage(text, className) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${className}`;
-            msgDiv.innerHTML = text;
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function addMessage(text, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            const id = 'msg-' + Date.now();
+            messageDiv.id = id;
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerText = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return id;
         }
 
-        function showLoading() {
-            const loader = document.createElement('div');
-            loader.className = 'message ai-message';
-            loader.id = 'loading-msg';
-            loader.innerText = 'Nexus IA conectando con el servidor...';
-            chatBox.appendChild(loader);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function removeLoading() {
-            const loader = document.getElementById('loading-msg');
-            if (loader) chatBox.removeChild(loader);
+        function updateMessage(id, text) {
+            const messageDiv = document.getElementById(id);
+            if (messageDiv) {
+                messageDiv.innerText = text;
+                const chatContainer = document.getElementById('chatContainer');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
 
         function triggerStarsPayment() {
-            if (tg.showPopup) {
-                tg.showPopup({
-                    title: '★ Nexus Pro',
-                    message: 'Desbloquea asesoría de marketing ilimitada y modelos avanzados por 50 Stars.',
-                    buttons: [
-                        { type: 'default', text: 'Pagar 50 Stars', id: 'pay' },
-                        { type: 'cancel', text: 'Cancelar' }
-                    ]
-                }, function(buttonId) {
-                    if (buttonId === 'pay') {
-                        tg.showAlert('¡Gracias por activar Nexus Pro!');
-                    }
-                });
+            if (tg.showAlert) {
+                tg.showAlert("🌟 Modo Pro en desarrollo. Próximamente podrás desbloquear consultas ilimitadas con Telegram Stars.");
+            } else {
+                alert("🌟 Modo Pro en desarrollo. Próximamente podrás desbloquear consultas ilimitadas con Telegram Stars.");
             }
         }
     </script>
