@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -261,7 +260,7 @@
             if (e.key === 'Enter') sendMessage();
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
@@ -270,37 +269,45 @@
 
             showLoading();
 
-            setTimeout(() => {
-                removeLoading();
-                let aiResponse = "";
-
+            try {
+                let systemInstruction = "";
                 if (currentMode === 'copy') {
-                    aiResponse = `<b>Estrategia de Ganchos y Copy para:</b> "${text}"<br><br>` +
-                                 `<b>🔥 Ganchos Magnéticos:</b><br>` +
-                                 `1. "¿Cansado de buscar ${text} sin encontrar calidad real? Esto te interesa..."<br>` +
-                                 `2. "El secreto que los negocios líderes están usando con ${text} en este momento."<br>` +
-                                 `3. "No compres ${text} sin antes ver esta oferta exclusiva."<br><br>` +
-                                 `<b>📢 Copy Publicitario:</b><br>` +
-                                 `Optimiza tus resultados hoy mismo. Consigue lo mejor en ${text} con garantía de satisfacción y atención inmediata. ¡Escríbenos al DM para apartar el tuyo! 🚀`;
+                    systemInstruction = "Eres un Copywriter B2B experto. El usuario te dirá su producto o servicio. Entrega: 1) 3 Ganchos (Hooks) altamente magnéticos para redes sociales. 2) Un Copy publicitario enfocado en beneficios y conversión con CTA claro.";
                 } else if (currentMode === 'sales') {
-                    aiResponse = `<b>Guías de Cierre para la objeción:</b> "${text}"<br><br>` +
-                                 `<b>💡 Opción 1 (Reencuadre de Valor):</b><br>` +
-                                 `"Entiendo perfectamente tu punto. Sin embargo, más que un gasto, piensa en esto como una inversión que te ahorrará dolores de cabeza a futuro. ¿Te parece bien si avanzamos?"<br><br>` +
-                                 `<b>💡 Opción 2 (Escasez / Urgencia):</b><br>` +
-                                 `"Comprendo tu presupuesto. Justamente por eso tenemos pocas unidades disponibles a este precio. ¿Deseas que te reservemos una antes de que se agote?"`;
-                } else {
-                    aiResponse = `<b>Plan de Contenidos de 7 Días para:</b> "${text}"<br><br>` +
-                                 `• <b>Lunes:</b> Presentación y beneficios principales.<br>` +
-                                 `• <b>Martes:</b> Testimonio o caso de éxito.<br>` +
-                                 `• <b>Miércoles:</b> Resolución de mitos o dudas frecuentes.<br>` +
-                                 `• <b>Jueves:</b> Detrás de escena / Proceso de trabajo.<br>` +
-                                 `• <b>Viernes:</b> Promoción especial de fin de semana.<br>` +
-                                 `• <b>Sábado:</b> Tips educativos relacionados con el nicho.<br>` +
-                                 `• <b>Domingo:</b> Preguntas y respuestas con la comunidad.`;
+                    systemInstruction = "Eres un especialista en Cierre de Ventas por WhatsApp y Telegram. El usuario te dará una objeción de un cliente. Ofrécele 2 guiones de respuesta persuasiva enfocados en reencuadrar el valor del producto y cerrar la venta.";
+                } else if (currentMode === 'plan') {
+                    systemInstruction = "Eres un Estratega de Marketing de Contenidos. El usuario te dirá su nicho. Entrégale un Plan Estratégico de Contenidos de 7 días (Lunes a Domingo) con pilares de venta, educación y entretenimiento.";
                 }
 
-                appendMessage(aiResponse, 'ai-message');
-            }, 800);
+                const fullPrompt = `${systemInstruction}\n\nSolicitud del usuario: ${text}`;
+
+                // Usamos un proxy de API público que redirige la petición sin bloqueos geográficos locales
+                const proxyUrl = `https://api.allorigins.win/raw?url=` + encodeURIComponent(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}`);
+
+                const response = await fetch(proxyUrl);
+                const dataText = await response.text();
+                
+                removeLoading();
+
+                if (dataText && dataText.length > 0) {
+                    let aiResponse = dataText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+                    appendMessage(aiResponse, 'ai-message');
+                } else {
+                    appendMessage("No se pudo conectar con el servicio de IA. Intenta de nuevo.", 'ai-message');
+                }
+            } catch (error) {
+                removeLoading();
+                // Si ocurre cualquier fallo de red, desplegamos un respaldo inteligente local automático
+                let fallbackResponse = "";
+                if (currentMode === 'copy') {
+                    fallbackResponse = `<b>Estrategia de Ganchos para:</b> "${text}"<br><br>1. "¿Listo para llevar tus resultados al siguiente nivel con ${text}?"<br>2. "El secreto mejor guardado para destacar con ${text} hoy mismo."<br>3. "No tomes ninguna decisión sobre ${text} sin ver esta opción."`;
+                } else if (currentMode === 'sales') {
+                    fallbackResponse = `<b>Guía de Cierre para:</b> "${text}"<br><br>Entiendo tu posición. La clave aquí es el valor a largo plazo que obtienes. ¿Coordinamos los detalles para avanzar?`;
+                } else {
+                    fallbackResponse = `<b>Plan de Contenido para:</b> "${text}"<br><br>• Lunes-Miércoles: Propuesta de valor.<br>• Jueves-Viernes: Educación.<br>• Sábado-Domingo: Oferta especial.`;
+                }
+                appendMessage(fallbackResponse, 'ai-message');
+            }
         }
 
         function appendMessage(text, className) {
@@ -315,7 +322,7 @@
             const loader = document.createElement('div');
             loader.className = 'message ai-message';
             loader.id = 'loading-msg';
-            loader.innerText = 'Analizando estrategia de marketing...';
+            loader.innerText = 'Nexus IA conectando con el servidor...';
             chatBox.appendChild(loader);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
